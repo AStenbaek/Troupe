@@ -9,8 +9,6 @@ let fun map f list =
             |  (x::xs) => (f (j,x)) :: (mapj (j+1) xs)
     in mapj 0 list
     end
-    
-    
 
     fun foldl f y [] = y
       | foldl f y (x::xs) = foldl f (f (x,y)) xs
@@ -21,7 +19,6 @@ let fun map f list =
     fun reverse ls =
       let fun rev [] a = a
             | rev (x::xs) a = rev xs (x::a)
-
       in rev ls []
       end
 
@@ -53,11 +50,41 @@ let fun map f list =
             | partition_aux  (a,b) (x::xs) =
                         if f x then partition_aux (x::a, b) xs 
                                else partition_aux (a, x::b) xs
-            
-      
       in  partition_aux ([],[]) ls 
       end   
 
+    (* Sort list l with comparison function cmp using a merge sort. *)
+    fun sort cmp l =
+	let (* Split list l at index i. *)
+	    fun split i l =
+		let fun split' 0 list acc = (acc, list)
+		      | split' j (a::list) acc = split' (j - 1) list (a::acc)
+		      | split' j [] acc = ([], acc)
+		in split' i l []
+		end
+	    (* Merge two sorted lists with comparison function cmp. *)
+	    fun merge cmp l1 l2 =
+		let fun merge' [] [] acc = reverse acc
+		      | merge' (a::l1') [] acc = merge' l1' [] (a::acc)
+		      | merge' [] (b::l2') acc = merge' [] l2' (b::acc)
+		      | merge' (a::l1') (b::l2') acc =
+			if cmp a b (* a < b *)
+			then merge' l1' (b::l2') (a::acc)
+			else merge' (a::l1') l2' (b::acc)
+		in merge' l1 l2 []
+		end
+	    fun sort' [] = []
+	      | sort' (a::[]) = a::[]
+	      | sort' l =
+		let val len = length l
+		    val half = len / 2
+		    val (upper, lower) = split half l
+		    val sorted_upper = sort' upper
+		    val sorted_lower = sort' lower
+		in merge cmp sorted_upper sorted_lower
+		end
+	in sort' l
+	end
 in
     [ ("map",     map)
     , ("mapi",    mapi)
@@ -68,6 +95,7 @@ in
     , ("elem",    elem)
     , ("length",  length)
     , ("append",  append)
-    , ("partition", partition) 
+    , ("partition", partition)
+    , ("sort", sort)
     ]
 end

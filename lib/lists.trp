@@ -57,33 +57,33 @@ let fun map f list =
     fun sort cmp l =
 	let (* Split list l at index i. *)
 	    fun split i l =
-		let fun split' 0 list acc = (acc, list)
-		      | split' j (a::list) acc = split' (j - 1) list (a::acc)
-		      | split' j [] acc = ([], acc)
-		in split' i l []
+		let fun split_inner 0 list acc = (acc, list)
+		      | split_inner j (a::list) acc = split_inner (j - 1) list (a::acc)
+		      | split_inner j [] acc = ([], acc)
+		in split_inner i l []
 		end
 	    (* Merge two sorted lists with comparison function cmp. *)
-	    fun merge cmp l1 l2 =
-		let fun merge' [] [] acc = reverse acc
-		      | merge' (a::l1') [] acc = merge' l1' [] (a::acc)
-		      | merge' [] (b::l2') acc = merge' [] l2' (b::acc)
-		      | merge' (a::l1') (b::l2') acc =
+	    fun merge cmp l1 l2 = (* cmp: 'a -> 'a -> bool *)
+		let fun merge_inner [] [] acc = reverse acc
+		      | merge_inner (a::l1') [] acc = merge_inner l1' [] (a::acc)
+		      | merge_inner [] (b::l2') acc = merge_inner [] l2' (b::acc)
+		      | merge_inner (a::l1') (b::l2') acc =
 			if cmp a b (* a < b *)
-			then merge' l1' (b::l2') (a::acc)
-			else merge' (a::l1') l2' (b::acc)
-		in merge' l1 l2 []
+			then merge_inner l1' (b::l2') (a::acc)
+			else merge_inner (a::l1') l2' (b::acc)
+		in merge_inner l1 l2 []
 		end
-	    fun sort' [] = []
-	      | sort' (a::[]) = a::[]
-	      | sort' l =
+	    fun sort_inner [] = []
+	      | sort_inner (a::[]) = a::[]
+	      | sort_inner l =
 		let val len = length l
-		    val half = len / 2
+		    val half = len div 2 
 		    val (upper, lower) = split half l
-		    val sorted_upper = sort' upper
-		    val sorted_lower = sort' lower
+		    val sorted_upper = sort_inner upper
+		    val sorted_lower = sort_inner lower
 		in merge cmp sorted_upper sorted_lower
 		end
-	in sort' l
+	in sort_inner l
 	end
 in
     [ ("map",     map)
